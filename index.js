@@ -12,13 +12,12 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // PostgreSQL connection setup
+const { Pool } = require('pg');
 const pool = new Pool({
-  user: 'macbookpro',      // <-- use your PostgreSQL username here
-  host: 'localhost',
-  database: 'voterdb',
-  password: '',            // Leave empty if no password set
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
+
 
 pool.connect()
   .then(() => console.log('✅ Connected to PostgreSQL database'))
