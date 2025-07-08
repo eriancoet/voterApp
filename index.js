@@ -12,7 +12,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // PostgreSQL connection setup
-const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -30,23 +29,20 @@ app.get('/', (req, res) => {
   res.send('Voter poll API is running');
 });
 
-// ✅ Submit vote
+// Submit vote
 app.post('/vote', async (req, res) => {
   const { name, surname, idNumber, email, party } = req.body;
 
   try {
-    // Check if this ID number already voted
     const existing = await pool.query(
       'SELECT * FROM votes WHERE id_number = $1',
       [idNumber]
     );
 
     if (existing.rows.length > 0) {
-      // ID already voted — send conflict error
       return res.status(409).json({ error: 'This ID number has already voted' });
     }
 
-    // Insert new vote
     await pool.query(
       'INSERT INTO votes (name, surname, id_number, email, party) VALUES ($1, $2, $3, $4, $5)',
       [name, surname, idNumber, email, party]
@@ -58,7 +54,7 @@ app.post('/vote', async (req, res) => {
   }
 });
 
-// ✅ Get poll results
+// Get poll results
 app.get('/results', async (req, res) => {
   try {
     const result = await pool.query(
@@ -70,7 +66,6 @@ app.get('/results', async (req, res) => {
   }
 });
 
-// ✅ Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
